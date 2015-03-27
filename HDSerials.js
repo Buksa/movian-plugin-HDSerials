@@ -1,5 +1,5 @@
 /**
- *  HDSerials plugin for Showtime
+ *  HDSerials plugin for Movian
  *
  *  Copyright (C) 2015 Buksa, Wain
  *
@@ -16,13 +16,13 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-//ver 0.10 API
+//ver 0.11 API
 (function(plugin) {
     var plugin_info = plugin.getDescriptor();
     var PREFIX = plugin_info.id;
     var BASE_URL = 'http://hdserials.galanov.net';
     var logo = plugin.path + "img/logo.png";
-    var USER_AGENT = 'Android;HD Serials v.1.12.4;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)';
+    var USER_AGENT = 'Android;HD Serials v.1.12.10;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)';
     plugin.addHTTPAuth("http:\/\/.*.galanov.net.*", function(authreq) {
         authreq.setHeader("User-Agent", USER_AGENT);
     });
@@ -52,16 +52,6 @@
     var service = plugin.createService("HDSerials.ru", PREFIX + ":start", "video", true, logo);
     var settings = plugin.createSettings("HDSerials", logo, "HDSerials: Integration of the website HDSerials.ru into Showtime");
     settings.createInfo("info", logo, "Plugin developed by " + plugin_info.author + ". \n");
-    var Resolution = [
-        ['0', 'Auto', true],
-        ['1', '720p'],
-        ['2', '480p'],
-        ['3', '360p'],
-    ];
-    settings.createDivider('Video Settings');
-    settings.createMultiOpt("Resolution", "Разрешение", Resolution, function(v) {
-        service.Resolution = v;
-    });
     settings.createDivider('Browser Settings');
     settings.createInfo("info2", '', "Чем меньше значение - тем быстрее подгрузка списков в директориях с большим количеством файлов, но тем больше вероятность ошибки сервера. \n");
     settings.createInt("Min.Delay", "Интервал запросов к серверу (default: 3 сек)", 3, 1, 10, 1, 'сек', function(v) {
@@ -76,11 +66,11 @@
     settings.createBool("debug", "Debug", false, function(v) {
         service.debug = v;
     });
-    var qualityNotAvailableError = "Невозможно открыть видео в " + Resolution[service.Resolution][1] + ", используется максимально доступное качество";
+
 
     function startPage(page) {
 
-        var json = showtime.JSONDecode(showtime.httpReq(BASE_URL + '/backend/model.php', {
+        var json = JSON.parse(showtime.httpReq(BASE_URL + '/backend/model.php', {
             method: 'POST',
             headers: {
                 'User-Agent': USER_AGENT
@@ -117,7 +107,7 @@
             }
         }).toString();
         p(json)
-        json = showtime.JSONDecode(json)
+        json = JSON.parse(json)
         for (var i in json.data) {
             page.appendItem(PREFIX + ':filter-videos:' + json.data[i].video_id + ':' + escape(json.data[i].video_title_ru + (json.data[i].video_season ? " " + json.data[i].video_season : "")), "video", {
                 title: new showtime.RichText(json.data[i].video_title_ru + (json.data[i].video_title_en ? " / " + json.data[i].video_title_en : "") +
@@ -132,7 +122,7 @@
     });
     // Shows genres of the category jump to sub-categories
     plugin.addURI(PREFIX + ":common-categories:(.*):(.*)", function(page, id, title) {
-        var json = showtime.JSONDecode(showtime.httpReq(BASE_URL + '/backend/model.php', {
+        var json = JSON.parse(showtime.httpReq(BASE_URL + '/backend/model.php', {
             method: 'POST',
             headers: {
                 'User-Agent': USER_AGENT
@@ -180,7 +170,7 @@
                     lastRequest = Date.now();
                     requestFinished = false;
                     //showtime.print("Time to make some requests now!");
-                    var json = showtime.JSONDecode(showtime.httpReq(BASE_URL + '/backend/model.php', {
+                    var json = JSON.parse(showtime.httpReq(BASE_URL + '/backend/model.php', {
                         method: 'POST',
                         headers: {
                             'User-Agent': USER_AGENT
@@ -223,7 +213,7 @@
     });
     plugin.addURI(PREFIX + ":filter-videos:(.*):(.*)", function(page, id, title) {
         var i, item, genres, actors, directors, countries, data = {};
-        var json = showtime.JSONDecode(showtime.httpReq(BASE_URL + '/backend/model.php', {
+        var json = JSON.parse(showtime.httpReq(BASE_URL + '/backend/model.php', {
             method: 'POST',
             headers: {
                 'User-Agent': USER_AGENT
@@ -302,6 +292,7 @@
                     episode: json.data.files[i].episode,
                     url: json.data.files[i].url
                 };
+
                 item = page.appendItem(PREFIX + ':' + json.id + ':' + escape(JSON.stringify(data)), "video", {
                     title: new showtime.RichText(json.data.files[i].title),
                     description: new showtime.RichText((json.data.info.translation ? coloredStr('Перевод: ', orange) + json.data.info.translation + '\n' : '') + (countries ? coloredStr('Страна: ', orange) + countries + '\n' : '') + (directors ? coloredStr('Режиссер: ', orange) + directors + ' ' : '') + (actors ? '\n' + coloredStr('В ролях актеры: ', orange) + actors + '\n' : '') + (json.data.info.description ? coloredStr('Описание: ', orange) + json.data.info.description : '')),
@@ -320,7 +311,7 @@
     plugin.addURI(PREFIX + ":video:(.*)", function(page, data) {
         //no loading circle was present, forcing
         var canonicalUrl = PREFIX + ":video:" + data;
-        data = showtime.JSONDecode(unescape(data));
+        data = JSON.parse(unescape(data));
         page.loading = true;
 
         var videoparams = {
@@ -391,7 +382,7 @@
             //        player_osmf('AniDub/[AniDub]_World_Trigger_[720p]_[Manaoki_Holly]/[AniDub]_World_Trigger_[01]_[720p_x264_Aac]_[Manaoki_Holly].mp4', video_url.manifest_f4m, 'player');
             //      }
             //  });
-            page.metadata.title = v.match(/player_osmf.*\/([^']+)/)[1]
+            page.metadata.title = /player_osmf\('([^']+)/.exec(v)[1];
             var postdata = {}
             postdata = /post\('\/sessions\/create_session', \{([^\}]+)/.exec(v)[1]
             p(postdata)
@@ -413,8 +404,9 @@
                 }
             ]
             video = "videoparams:" + JSON.stringify(videoparams)
+            p(data.season)
             page.appendItem(video, "video", {
-                title: "[Auto]-" + data.title + " | " + data.season + " \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f",
+                title: "[Auto]-" + data.title + (data.season > 0 ? data.season + " | " + +" \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : ''),
                 /*duration: vars.response.duration,
                                                         icon: vars.response.thumb*/
             });
@@ -429,7 +421,7 @@
                 ]
                 video = "videoparams:" + JSON.stringify(videoparams)
                 page.appendItem(video, "video", {
-                    title: "[" + video_urls[i][1] + "]-" + data.title + " | " + data.season + " \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f"
+                    title: "[" + video_urls[i][1] + "]-" + data.title + (data.season > 0 ? data.season + " | " + +" \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : '')
                     /*,
                                                         duration: vars.response.duration,
                                                         icon: logo*/
@@ -524,7 +516,7 @@
             page.entries = 0;
             var offset = 0;
             var loader = function loader() {
-                var json = showtime.JSONDecode(showtime.httpReq(BASE_URL + '/backend/model.php', {
+                var json = JSON.parse(showtime.httpReq(BASE_URL + '/backend/model.php', {
                     method: 'POST',
                     headers: {
                         'User-Agent': USER_AGENT

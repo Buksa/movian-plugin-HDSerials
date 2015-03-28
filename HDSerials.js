@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-//ver 0.11 API
+//ver 0.11.1 API
 (function(plugin) {
     var plugin_info = plugin.getDescriptor();
     var PREFIX = plugin_info.id;
@@ -262,7 +262,7 @@
                     });
                 }
                 data = {
-                    title: json.data.info.title_en,
+                    title: json.data.info.title_en !== ""  ? json.data.info.title_en :json.data.info.title_ru,
                     year: json.data.info.year,
                     season: json.data.files[j].season,
                     episode: json.data.files[j].episode,
@@ -285,8 +285,9 @@
 
         } else {
             for (i in json.data.files) {
+                p(json.data.info.title_en)
                 data = {
-                    title: json.data.info.title_en,
+                    title: json.data.info.title_en !== ""  ? json.data.info.title_en :json.data.info.title_ru,
                     year: json.data.info.year,
                     season: json.data.files[i].season,
                     episode: json.data.files[i].episode,
@@ -312,6 +313,7 @@
         //no loading circle was present, forcing
         var canonicalUrl = PREFIX + ":video:" + data;
         data = JSON.parse(unescape(data));
+        p(data)
         page.loading = true;
 
         var videoparams = {
@@ -356,8 +358,10 @@
                 }
             }
 
-        } else {
-            //if (url.match(/http:\/\/.+?iframe/)) {
+        }
+        
+        //monewalk
+        if (data.url.match(/http:\/\/.+?iframe/)) {
             p('Open url:' + data.url.match(/http:\/\/.+?iframe/));
             var hdcdn = data.url.match(/http:\/\/.+?iframe/).toString();
             v = showtime.httpReq(hdcdn, {
@@ -385,7 +389,7 @@
             page.metadata.title = /player_osmf\('([^']+)/.exec(v)[1];
             var postdata = {}
             postdata = /post\('\/sessions\/create_session', \{([^\}]+)/.exec(v)[1]
-            p(postdata)
+            p('postdata from page:'+postdata)
             postdata = {
                 partner: /partner: (.*),/.exec(v)[1],
                 d_id: /d_id: (.*),/.exec(v)[1],
@@ -393,6 +397,8 @@
                 content_type: /content_type: '(.*)'/.exec(v)[1],
                 access_key: /access_key: '(.*)'/.exec(v)[1]
             }
+            p('postdata from plugin:'+postdata)
+            p(postdata)
             json = JSON.parse(showtime.httpReq(hdcdn.match(/http:\/\/.*?\//) + 'sessions/create_session', {
                 debug: true,
                 postdata: postdata
@@ -406,7 +412,7 @@
             video = "videoparams:" + JSON.stringify(videoparams)
             p(data.season)
             page.appendItem(video, "video", {
-                title: "[Auto]-" + data.title + (data.season > 0 ? data.season + " | " + +" \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : ''),
+                title: "[Auto]-" + data.title + (data.season > 0 ? " | "+ data.season  + " \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : ''),
                 /*duration: vars.response.duration,
                                                         icon: vars.response.thumb*/
             });
@@ -421,7 +427,7 @@
                 ]
                 video = "videoparams:" + JSON.stringify(videoparams)
                 page.appendItem(video, "video", {
-                    title: "[" + video_urls[i][1] + "]-" + data.title + (data.season > 0 ? data.season + " | " + +" \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : '')
+                    title: "[" + video_urls[i][1] + "]-"  + data.title + (data.season > 0 ? " | "+ data.season  + " \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : '')
                     /*,
                                                         duration: vars.response.duration,
                                                         icon: logo*/

@@ -16,7 +16,11 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-//ver 0.11.1 API
+//ver 0.11.2 API
+
+var http = require('showtime/http');
+
+
 (function(plugin) {
     var plugin_info = plugin.getDescriptor();
     var PREFIX = plugin_info.id;
@@ -70,7 +74,7 @@
 
     function startPage(page) {
 
-        var json = JSON.parse(showtime.httpReq(BASE_URL + '/backend/model.php', {
+        var json = JSON.parse(http.request(BASE_URL + '/backend/model.php', {
             method: 'POST',
             headers: {
                 'User-Agent': USER_AGENT
@@ -97,7 +101,7 @@
     }
     plugin.addURI(PREFIX + ":news:(.*)", function(page, id) {
         var counter = 0;
-        var json = showtime.httpReq(BASE_URL + '/backend/model.php', {
+        var json = http.request(BASE_URL + '/backend/model.php', {
             method: 'POST',
             headers: {
                 'User-Agent': USER_AGENT
@@ -122,7 +126,7 @@
     });
     // Shows genres of the category jump to sub-categories
     plugin.addURI(PREFIX + ":common-categories:(.*):(.*)", function(page, id, title) {
-        var json = JSON.parse(showtime.httpReq(BASE_URL + '/backend/model.php', {
+        var json = JSON.parse(http.request(BASE_URL + '/backend/model.php', {
             method: 'POST',
             headers: {
                 'User-Agent': USER_AGENT
@@ -153,13 +157,13 @@
 
         function loader() {
             if (!requestFinished) {
-                //showtime.print("Request not finished yet, exiting");
+                //print("Request not finished yet, exiting");
                 return false;
             }
-            //showtime.print(video_count + " " + counter);
+            //print(video_count + " " + counter);
             if (parseInt(video_count, 10) <= counter) {
                 if (service.showEndOfDirMessage && requestNumber > 2) {
-                    showtime.notify("Достигнут конец директории", 2);
+                    popup.notify("Достигнут конец директории", 2);
                 }
                 return false;
             }
@@ -169,8 +173,8 @@
                 try {
                     lastRequest = Date.now();
                     requestFinished = false;
-                    //showtime.print("Time to make some requests now!");
-                    var json = JSON.parse(showtime.httpReq(BASE_URL + '/backend/model.php', {
+                    //print("Time to make some requests now!");
+                    var json = JSON.parse(http.request(BASE_URL + '/backend/model.php', {
                         method: 'POST',
                         headers: {
                             'User-Agent': USER_AGENT
@@ -185,14 +189,14 @@
                     }));
                     requestFinished = true;
                     requestNumber++;
-                    //showtime.print("Request finished!. Got " + json.data.length);
+                    //print("Request finished!. Got " + json.data.length);
                     return json;
                 } catch (err) {
-                    showtime.notify("Подгрузка контента не удалась. Возможно, сервер не ответил вовремя.", 5);
+                    popup.notify("Подгрузка контента не удалась. Возможно, сервер не ответил вовремя.", 5);
                     return false;
                 }
             };
-            //showtime.print("Let's wait " + delay + " msec before making a request!");
+            //print("Let's wait " + delay + " msec before making a request!");
             sleep(delay);
             json = loadjson();
             if (!json) return false;
@@ -213,7 +217,7 @@
     });
     plugin.addURI(PREFIX + ":filter-videos:(.*):(.*)", function(page, id, title) {
         var i, item, genres, actors, directors, countries, data = {};
-        var json = JSON.parse(showtime.httpReq(BASE_URL + '/backend/model.php', {
+        var json = JSON.parse(http.request(BASE_URL + '/backend/model.php', {
             method: 'POST',
             headers: {
                 'User-Agent': USER_AGENT
@@ -262,7 +266,7 @@
                     });
                 }
                 data = {
-                    title: json.data.info.title_en !== ""  ? json.data.info.title_en :json.data.info.title_ru,
+                    title: json.data.info.title_en !== "" ? json.data.info.title_en : json.data.info.title_ru,
                     year: json.data.info.year,
                     season: json.data.files[j].season,
                     episode: json.data.files[j].episode,
@@ -287,7 +291,7 @@
             for (i in json.data.files) {
                 p(json.data.info.title_en)
                 data = {
-                    title: json.data.info.title_en !== ""  ? json.data.info.title_en :json.data.info.title_ru,
+                    title: json.data.info.title_en !== "" ? json.data.info.title_en : json.data.info.title_ru,
                     year: json.data.info.year,
                     season: json.data.files[i].season,
                     episode: json.data.files[i].episode,
@@ -334,11 +338,11 @@
         if (data.url.indexOf("oid=") !== -1) {
             p('Open url:' + 'http://vk.com/' + url);
             page.metadata.title = title
-            vars = JSON.parse(showtime.httpReq('https://api.vk.com/method/video.getEmbed?' + url.replace('&id', '&video_id').replace('&hash', '&embed_hash')).toString());
+            vars = JSON.parse(http.request('https://api.vk.com/method/video.getEmbed?' + url.replace('&id', '&video_id').replace('&hash', '&embed_hash')).toString());
             p(vars)
             if (vars.error) {
                 page.metadata.title = vars.error.error_msg
-                showtime.notify(vars.error.error_msg + '\n' + 'This video has been removed from public access.', 3)
+                popup.notify(vars.error.error_msg + '\n' + 'This video has been removed from public access.', 3)
 
             } else {
                 for (key in vars.response) {
@@ -359,12 +363,12 @@
             }
 
         }
-        
+
         //monewalk
         if (data.url.match(/http:\/\/.+?iframe/)) {
             p('Open url:' + data.url.match(/http:\/\/.+?iframe/));
             var hdcdn = data.url.match(/http:\/\/.+?iframe/).toString();
-            v = showtime.httpReq(hdcdn, {
+            v = http.request(hdcdn, {
                 method: 'GET',
                 headers: {
                     'Referer': BASE_URL
@@ -389,18 +393,29 @@
             page.metadata.title = /player_osmf\('([^']+)/.exec(v)[1];
             var postdata = {}
             postdata = /post\('\/sessions\/create_session', \{([^\}]+)/.exec(v)[1]
-            p('postdata from page:'+postdata)
+            p('postdata from page:' + postdata)
+
+            MOON_E = /'X-MOON-EXPIRED', "([^"]+)/.exec(v)[1];
+            MOON_T = /'X-MOON-TOKEN', "([^"]+)/.exec(v)[1];
+
             postdata = {
-                partner: /partner: (.*),/.exec(v)[1],
+                partner: '',
                 d_id: /d_id: (.*),/.exec(v)[1],
                 video_token: /video_token: '(.*)'/.exec(v)[1],
                 content_type: /content_type: '(.*)'/.exec(v)[1],
-                access_key: /access_key: '(.*)'/.exec(v)[1]
-            }
-            p('postdata from plugin:'+postdata)
+                access_key: /access_key: '(.*)'/.exec(v)[1],
+                cd: 1
+            };
+            p('postdata from plugin:' + postdata)
             p(postdata)
-            json = JSON.parse(showtime.httpReq(hdcdn.match(/http:\/\/.*?\//) + 'sessions/create_session', {
+            json = JSON.parse(http.request(hdcdn.match(/http:\/\/.*?\//) + 'sessions/create_session', {
                 debug: true,
+                headers: {
+                    'X-MOON-EXPIRED': MOON_E,
+                    'X-MOON-TOKEN': MOON_T,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Referer': data.url
+                },
                 postdata: postdata
             }));
             result_url = 'hls:' + json.manifest_m3u8;
@@ -412,11 +427,11 @@
             video = "videoparams:" + JSON.stringify(videoparams)
             p(data.season)
             page.appendItem(video, "video", {
-                title: "[Auto]-" + data.title + (data.season > 0 ? " | "+ data.season  + " \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : ''),
+                title: "[Auto]-" + data.title + (data.season > 0 ? " | " + data.season + " \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : ''),
                 /*duration: vars.response.duration,
                                                         icon: vars.response.thumb*/
             });
-            var video_urls = showtime.httpReq(json.manifest_m3u8).toString()
+            var video_urls = http.request(json.manifest_m3u8).toString()
             p(video_urls)
             var video_urls = /RESOLUTION=([^,]+)[\s\S]+?(http.*)/g.execAll(video_urls);
             p(video_urls)
@@ -427,7 +442,7 @@
                 ]
                 video = "videoparams:" + JSON.stringify(videoparams)
                 page.appendItem(video, "video", {
-                    title: "[" + video_urls[i][1] + "]-"  + data.title + (data.season > 0 ? " | "+ data.season  + " \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : '')
+                    title: "[" + video_urls[i][1] + "]-" + data.title + (data.season > 0 ? " | " + data.season + " \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : '')
                     /*,
                                                         duration: vars.response.duration,
                                                         icon: logo*/
@@ -452,11 +467,11 @@
 
     function debug(message) {
         showtime.trace(message, plugin.getDescriptor().id);
-        showtime.print(message);
+        print(message);
     }
 
     function p(msg) {
-        service.debug && ("object" === typeof msg && (msg = "### object ###\n" + JSON.stringify(msg) + "\n### object ###"), showtime.print(msg))
+        service.debug && ("object" === typeof msg && (msg = "### object ###\n" + JSON.stringify(msg) + "\n### object ###"), print(msg))
     };
 
 
@@ -522,7 +537,7 @@
             page.entries = 0;
             var offset = 0;
             var loader = function loader() {
-                var json = JSON.parse(showtime.httpReq(BASE_URL + '/backend/model.php', {
+                var json = JSON.parse(http.request(BASE_URL + '/backend/model.php', {
                     method: 'POST',
                     headers: {
                         'User-Agent': USER_AGENT

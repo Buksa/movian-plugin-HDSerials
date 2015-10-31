@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-//ver 0.11.2 API
+//ver 0.11.3 API
 
 var http = require('showtime/http');
 
@@ -395,8 +395,8 @@ var http = require('showtime/http');
             postdata = /post\('\/sessions\/create_session', \{([^\}]+)/.exec(v)[1]
             p('postdata from page:' + postdata)
 
-            MOON_E = /'X-MOON-EXPIRED', "([^"]+)/.exec(v)[1];
-            MOON_T = /'X-MOON-TOKEN', "([^"]+)/.exec(v)[1];
+            MOON_E = /'X-MOON-EXPIRED', "(.*?)"/.exec(v)[1];
+            MOON_T = /'X-MOON-TOKEN', "(.*?)"/.exec(v)[1];
 
             postdata = {
                 partner: '',

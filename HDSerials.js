@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-//ver 0.11.4 API
+//ver 0.11.5 API
 
 var http = require('showtime/http');
 
@@ -228,6 +228,8 @@ var http = require('showtime/http');
             }
         }));
         p(json)
+        //data ={}
+        //data.icon =  json.data.info.image_file ? json.data.info.image_file : ''
         if (json.data.genres) {
             genres = "";
             for (i in json.data.genres) {
@@ -270,8 +272,10 @@ var http = require('showtime/http');
                     year: json.data.info.year,
                     season: json.data.files[j].season,
                     episode: json.data.files[j].episode,
-                    url: json.data.files[j].url
+                    url: json.data.files[j].url,
+                    icon: json.data.info.image_file ? json.data.info.image_file : ''
                 };
+
                 p(json.data.files[j].season)
                 item = page.appendItem(PREFIX + ':' + json.id + ':' + escape(JSON.stringify(data)), "video", {
                     title: new showtime.RichText(json.data.files[j].title + (json.data.files[j].season_translation ? ' (' + json.data.files[j].season_translation + ')' : '')),
@@ -295,7 +299,8 @@ var http = require('showtime/http');
                     year: json.data.info.year,
                     season: json.data.files[i].season,
                     episode: json.data.files[i].episode,
-                    url: json.data.files[i].url
+                    url: json.data.files[i].url,
+                    icon: json.data.info.image_file ? json.data.info.image_file : ''
                 };
 
                 item = page.appendItem(PREFIX + ':' + json.id + ':' + escape(JSON.stringify(data)), "video", {
@@ -311,6 +316,7 @@ var http = require('showtime/http');
             }
         }
         setPageHeader(page, unescape(title));
+
     });
     // Play links
     plugin.addURI(PREFIX + ":video:(.*)", function(page, data) {
@@ -375,28 +381,26 @@ var http = require('showtime/http');
                 }
             }).toString();
             p(v)
-            //$.post('/sessions/create_session', {
-            //    partner: 250,
-            //    d_id: 6545,
-            //    video_token: '9ef85ccd47347169',
-            //    content_type: 'movie',
-            //    access_key: 'MNW4q9pL82sHxV'
-            //  }).success(function(video_url) {
-            //    ga('send', 'event', 'session', '9ef85ccd47347169');
-            //
-            //      if (isMobile.Android() || isMobile.iOS()) {
-            //        player_hls(video_url.manifest_m3u8);
-            //      } else {
-            //        player_osmf('AniDub/[AniDub]_World_Trigger_[720p]_[Manaoki_Holly]/[AniDub]_World_Trigger_[01]_[720p_x264_Aac]_[Manaoki_Holly].mp4', video_url.manifest_f4m, 'player');
-            //      }
-            //  });
             page.metadata.title = /player_osmf\('([^']+)/.exec(v)[1];
             var postdata = {}
             postdata = /post\('\/sessions\/create_session', \{([^\}]+)/.exec(v)[1]
             p('postdata from page:' + postdata)
 
-            MOON_E = /'X-MOON-EXPIRED', "(.*?)"/.exec(v)[1];
-            MOON_T = /'X-MOON-TOKEN', "(.*?)"/.exec(v)[1];
+            //            curl "http://moonwalk.cc/sessions/create_session"
+            //            -H "Host: moonwalk.cc"
+            //            -H "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0"
+            //            -H "Accept: */*" -H "Accept-Language: en-US,en;q=0.5"
+            //            --compressed -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8"
+            //            -H "Content-Data: MTQ0OTA4MzQyMC41OGI0OTliNTZiNjU2OTBjMmIyNzkwMTVmOTQ5OTk2NA=="
+            //            -H "X-Requested-With: XMLHttpRequest"
+            //            -H "Referer: http://moonwalk.cc/video/1c238bb19b4893f6/iframe"
+            //            -H "Cookie: _moon_session=Nkx6ZHh5NDNmZkpNMFpBeTQyQXphTkUzOGUrWFJDV0YwZzlVbzJsb0tDMFB0SXY5bmRhRUxhYk5YVFlYQ2s2Y3lhTWpraDBOTS9Yb2ROZVM1bFRpWmVIVk8rWlF6YXFLRWZCWDY1aXljSVdoZ3E4QzZKWkZEY2JDc1QxQWdvc2FROUVmZ0dIeVcyNldRT3RleUp3Vk5sRGp6Q2NwU3RZU3hUczU5d0hiK3ZPbFdYVnhTc1Y1UUNvMXp4RUR1cGsxLS00Rk05SXRseVVzc05aanhCZDVpNjVnPT0"%"3D--f2447832f61498cc750351e12d53e9a7c5129bf2; _ga=GA1.2.1241237613.1449082218; _gat=1; _364966110046=1; _364966110047=1449084082340"
+            //            -H "Connection: keep-alive"
+            //            -H "Pragma: no-cache"
+            //            -H "Cache-Control: no-cache"
+            //            --data "partner=&d_id=21609&video_token=1c238bb19b4893f6&content_type=movie&access_key=0fb74eb4b2c16d45fe&cd=0"
+            ////            MOON_E = /'X-MOON-EXPIRED', "(.*?)"/.exec(v)[1];
+            // //           MOON_T = /'X-MOON-TOKEN', "(.*?)"/.exec(v)[1];
 
             postdata = {
                 partner: '',
@@ -404,17 +408,20 @@ var http = require('showtime/http');
                 video_token: /video_token: '(.*)'/.exec(v)[1],
                 content_type: /content_type: '(.*)'/.exec(v)[1],
                 access_key: /access_key: '(.*)'/.exec(v)[1],
-                cd: 1
+                cd: 0
             };
             p('postdata from plugin:' + postdata)
             p(postdata)
+            var ContentData = Duktape.enc('base64', /(\d{10}\.[a-f\d]+)/.exec(v)[1])
             json = JSON.parse(http.request(hdcdn.match(/http:\/\/.*?\//) + 'sessions/create_session', {
                 debug: true,
                 headers: {
-                    'X-MOON-EXPIRED': MOON_E,
-                    'X-MOON-TOKEN': MOON_T,
+                    'Referer': data.url,
+                    'Host': 'moonwalk.cc',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0',
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'Content-Data': ContentData,
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Referer': data.url
                 },
                 postdata: postdata
             }));
@@ -428,6 +435,7 @@ var http = require('showtime/http');
             p(data.season)
             page.appendItem(video, "video", {
                 title: "[Auto]-" + data.title + (data.season > 0 ? " | " + data.season + " \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : ''),
+                icon: data.icon
                 /*duration: vars.response.duration,
                                                         icon: vars.response.thumb*/
             });
@@ -442,10 +450,9 @@ var http = require('showtime/http');
                 ]
                 video = "videoparams:" + JSON.stringify(videoparams)
                 page.appendItem(video, "video", {
-                    title: "[" + video_urls[i][1] + "]-" + data.title + (data.season > 0 ? " | " + data.season + " \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : '')
-                    /*,
-                                                        duration: vars.response.duration,
-                                                        icon: logo*/
+                    title: "[" + video_urls[i][1] + "]-" + data.title + (data.season > 0 ? " | " + data.season + " \u0441\u0435\u0437\u043e\u043d  | " + data.episode + " \u0441\u0435\u0440\u0438\u044f" : ''),
+                    //                                    duration: vars.response.duration,
+                    icon: data.icon
                 });
 
             }
@@ -548,11 +555,11 @@ var http = require('showtime/http');
                         search: query,
                         start: offset,
                         limit: 20
-                    }
-                }));
+                    }    }));
                 for (var i in json.data) {
                     page.appendItem(PREFIX + ':' + json.id + ':' + json.data[i].id + ':' + escape(json.data[i].title_ru + (json.data[i].season ? " " + showtime.entityDecode(json.data[i].season) : "")), "video", {
                         title: showtime.entityDecode(unescape(json.data[i].title_ru)) + (json.data[i].title_en ? " / " + showtime.entityDecode(json.data[i].title_en) : "") + (json.data[i].season ? " " + showtime.entityDecode(json.data[i].season) : ""),
+
                         year: +parseInt(json.data[i].year, 10),
                         icon: unescape(json.data[i].image_file)
                     });

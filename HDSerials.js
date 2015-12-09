@@ -16,9 +16,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-//ver 0.11.6 API
+//ver 0.11.7 API
 
 var http = require('showtime/http');
+var html = require('showtime/html');
 
 
 (function(plugin) {
@@ -26,9 +27,12 @@ var http = require('showtime/http');
     var PREFIX = plugin_info.id;
     var BASE_URL = 'http://hdserials.galanov.net';
     var logo = plugin.path + "img/logo.png";
-    var USER_AGENT = 'Android;HD Serials v.1.14.3;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)';
+    var USER_AGENT = 'Android;HD Serials v.1.14.5;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)';
     plugin.addHTTPAuth("http:\/\/.*.galanov.net.*", function(authreq) {
         authreq.setHeader("User-Agent", USER_AGENT);
+    });
+    plugin.addHTTPAuth("http:\/\/.*moonwalk.cc.*", function(authreq) {
+        authreq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0');
     });
 
     function trim(s) {
@@ -386,22 +390,20 @@ var http = require('showtime/http');
             postdata = /post\('\/sessions\/create_session', \{([^\}]+)/.exec(v)[1]
             p('postdata from page:' + postdata)
 
-            //            curl "http://moonwalk.cc/sessions/create_session"
-            //            -H "Host: moonwalk.cc"
-            //            -H "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0"
-            //            -H "Accept: */*" -H "Accept-Language: en-US,en;q=0.5"
-            //            --compressed -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8"
-            //            -H "Content-Data: MTQ0OTA4MzQyMC41OGI0OTliNTZiNjU2OTBjMmIyNzkwMTVmOTQ5OTk2NA=="
-            //            -H "X-Requested-With: XMLHttpRequest"
-            //            -H "Referer: http://moonwalk.cc/video/1c238bb19b4893f6/iframe"
-            //            -H "Cookie: _moon_session=Nkx6ZHh5NDNmZkpNMFpBeTQyQXphTkUzOGUrWFJDV0YwZzlVbzJsb0tDMFB0SXY5bmRhRUxhYk5YVFlYQ2s2Y3lhTWpraDBOTS9Yb2ROZVM1bFRpWmVIVk8rWlF6YXFLRWZCWDY1aXljSVdoZ3E4QzZKWkZEY2JDc1QxQWdvc2FROUVmZ0dIeVcyNldRT3RleUp3Vk5sRGp6Q2NwU3RZU3hUczU5d0hiK3ZPbFdYVnhTc1Y1UUNvMXp4RUR1cGsxLS00Rk05SXRseVVzc05aanhCZDVpNjVnPT0"%"3D--f2447832f61498cc750351e12d53e9a7c5129bf2; _ga=GA1.2.1241237613.1449082218; _gat=1; _364966110046=1; _364966110047=1449084082340"
-            //            -H "Connection: keep-alive"
-            //            -H "Pragma: no-cache"
-            //            -H "Cache-Control: no-cache"
-            //            --data "partner=&d_id=21609&video_token=1c238bb19b4893f6&content_type=movie&access_key=0fb74eb4b2c16d45fe&cd=0"
-            ////            MOON_E = /'X-MOON-EXPIRED', "(.*?)"/.exec(v)[1];
-            // //           MOON_T = /'X-MOON-TOKEN', "(.*?)"/.exec(v)[1];
-
+            ////curl "http://moonwalk.cc/sessions/create_session"
+            //-H "X-Requested-With: XMLHttpRequest"
+            //-H "X-CSRF-Token: JVsDXSpez8YwGPfBB/MolGHQ3t9lRPrJ4zlYaWYqzDyJlTkJtJo5vhXg8HpCEyB41CRbtbV+6EpFh8nOLdFa+w=="
+            //-H "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0"
+            //-H "Referer: http://moonwalk.cc/video/1c238bb19b4893f6/iframe"
+            //-H "Pragma: no-cache"
+            //-H "Host: moonwalk.cc"
+            //-H "Cookie: _ga=GA1.2.1241237613.1449082218; _moon_session=R2NUM05LSVNaL3VLV2drSmk2RzUwMGZrUnR5R0tKVWxWeGMvbkc2T3FodUtVSE9rUlFEaHRSZGV0Uis5V3VUQVZZSFgrZGVGb3dtQkFkMHVvbEtQdkJkaENrcUZaYmJncEZvVXJOTXpPQ3pWeWE3eVVkYjBjSmpNWGg3dE5HOWUraGoxYXVza0w4WUdiK0ZnS01yRDhtd0dzeldtekZja1YyWktkd3IvTWZjVVV1b2JuWFBscVZIYmJKcmRsYzBSLS16TXdQS2JZTlVuMmY4VEo2eFltaEtRPT0"%"3D--214a453f0e9c6410ae2dc8c17636d408fee3392b; _gat=1; _364966110046=1; _364966110047=1449678766727"
+            //-H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8"
+            //-H "Content-Data: MTQ0OTY3ODA0NS42NzU5MTZiMTc4OWFkYmM0ZTVjYTJmMDIzMzFlYjNkZQ=="
+            //-H "Connection: keep-alive"
+            //-H "Cache-Control: no-cache"
+            //-H "Accept-Language: en-US,en;q=0.5" --compressed
+            //-H "Accept: */*" --data "partner=&d_id=21609&video_token=1c238bb19b4893f6&content_type=movie&access_key=0fb74eb4b2c16d45fe&cd=0"
             postdata = {
                 partner: '',
                 d_id: /d_id: (.*),/.exec(v)[1],
@@ -416,6 +418,7 @@ var http = require('showtime/http');
             json = JSON.parse(http.request(hdcdn.match(/http:\/\/.*?\//) + 'sessions/create_session', {
                 debug: true,
                 headers: {
+                    "X-CSRF-Token": MetaTag(v, "csrf-token"),
                     'Referer': data.url,
                     'Host': 'moonwalk.cc',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0',
@@ -470,7 +473,15 @@ var http = require('showtime/http');
         page.loading = false;
     });
 
-
+    function MetaTag(res, tag) {
+        var dom = html.parse(res);
+        var meta = dom.root.getElementByTagName('meta')
+        for (i in meta) {
+            if (meta[i].attributes.getNamedItem('property') && meta[i].attributes.getNamedItem('property').value == tag) return meta[i].attributes.getNamedItem('content').value;
+            if (meta[i].attributes.getNamedItem('name') && meta[i].attributes.getNamedItem('name').value == tag) return meta[i].attributes.getNamedItem('content').value;
+        }
+        return 0;
+    }
 
     function debug(message) {
         showtime.trace(message, plugin.getDescriptor().id);
@@ -555,7 +566,8 @@ var http = require('showtime/http');
                         search: query,
                         start: offset,
                         limit: 20
-                    }    }));
+                    }
+                }));
                 for (var i in json.data) {
                     page.appendItem(PREFIX + ':' + json.id + ':' + json.data[i].id + ':' + escape(json.data[i].title_ru + (json.data[i].season ? " " + showtime.entityDecode(json.data[i].season) : "")), "video", {
                         title: showtime.entityDecode(unescape(json.data[i].title_ru)) + (json.data[i].title_en ? " / " + showtime.entityDecode(json.data[i].title_en) : "") + (json.data[i].season ? " " + showtime.entityDecode(json.data[i].season) : ""),

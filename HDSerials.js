@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-//ver 0.11.7 API
+//ver 0.11.8 API
 
 var http = require('showtime/http');
 var html = require('showtime/html');
@@ -27,7 +27,8 @@ var html = require('showtime/html');
     var PREFIX = plugin_info.id;
     var BASE_URL = 'http://hdserials.galanov.net';
     var logo = plugin.path + "img/logo.png";
-    var USER_AGENT = 'Android;HD Serials v.1.14.5;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)';
+    var USER_AGENT = 'Android;HD Serials v.1.14.9;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)';
+    var json
     plugin.addHTTPAuth("http:\/\/.*.galanov.net.*", function(authreq) {
         authreq.setHeader("User-Agent", USER_AGENT);
     });
@@ -117,7 +118,7 @@ var html = require('showtime/html');
         p(json)
         json = JSON.parse(json)
         for (var i in json.data) {
-            page.appendItem(PREFIX + ':filter-videos:' + json.data[i].video_id + ':' + escape(json.data[i].video_title_ru + (json.data[i].video_season ? " " + json.data[i].video_season : "")), "video", {
+            page.appendItem(PREFIX + ':filter-videos:' + json.data[i].video_id + ':' + escape(json.data[i].video_title_ru + (json.data[i].video_season ? " " + json.data[i].video_season : "")) + ':' + undefined, "video", {
                 title: new showtime.RichText(json.data[i].video_title_ru + (json.data[i].video_title_en ? " / " + json.data[i].video_title_en : "") +
                     (json.data[i].video_season ? " " + json.data[i].video_season : "")),
 
@@ -205,7 +206,8 @@ var html = require('showtime/html');
             json = loadjson();
             if (!json) return false;
             for (var i in json.data) {
-                page.appendItem(PREFIX + ':' + json.id + ':' + json.data[i].id + ':' + escape(json.data[i].title_ru + (json.data[i].season ? " " + showtime.entityDecode(json.data[i].season) : "")), "video", {
+                p(json.id)
+                page.appendItem(PREFIX + ':' + json.id + ':' + json.data[i].id + ':' + escape(json.data[i].title_ru + (json.data[i].season ? " " + showtime.entityDecode(json.data[i].season) : "")) + ':' + undefined, "video", {
                     title: showtime.entityDecode(unescape(json.data[i].title_ru)) + (json.data[i].title_en ? " / " + showtime.entityDecode(json.data[i].title_en) : "") + (json.data[i].season ? " " + showtime.entityDecode(json.data[i].season) : ""),
                     year: +parseInt(json.data[i].year, 10),
                     icon: unescape(json.data[i].image_file)
@@ -219,19 +221,37 @@ var html = require('showtime/html');
         setPageHeader(page, unescape(title));
         page.paginator = loader;
     });
-    plugin.addURI(PREFIX + ":filter-videos:(.*):(.*)", function(page, id, title) {
-        var i, item, genres, actors, directors, countries, data = {};
-        var json = JSON.parse(http.request(BASE_URL + '/backend/model.php', {
-            method: 'POST',
-            headers: {
-                'User-Agent': USER_AGENT
-            },
-            args: {
-                id: 'video',
-                video: id
-            }
-        }));
+    plugin.addURI(PREFIX + ":filter-videos:(.*):(.*):(.*)", function(page, id, title, filter) {
         p(json)
+        var i, item, genres, actors, directors, countries, data = {};
+        if (filter == 'undefined') {
+            json = JSON.parse(http.request(BASE_URL + '/backend/model.php', {
+                method: 'POST',
+                headers: {
+                    'User-Agent': USER_AGENT
+                },
+                args: {
+                    id: 'video',
+                    video: id
+                }
+            }));
+        }
+        p(json.data.files)
+
+        var tmp = ''
+        for (var i = 0; i < json.data.files.length; i++) {
+            p(i)
+            p(dump(json.data.files[i]))
+
+            if (tmp !== json.data.files[i].season_translation && json.data.files[i].season_translation !== null) {
+                tmp = json.data.files[i].season_translation
+                page.appendItem(PREFIX + ":filter-videos:" + id + ':' + title + ':' + json.data.files[i].season_translation_id, "directory", {
+                    title: json.data.files[i].season_translation
+                });
+            }
+
+        }
+
         //data ={}
         //data.icon =  json.data.info.image_file ? json.data.info.image_file : ''
         if (json.data.genres) {
@@ -262,39 +282,41 @@ var html = require('showtime/html');
                 if (i < json.data.directors.length - 1) directors += ', ';
             }
         }
+        var test = []
         if (json.data.files.length > 1) {
 
             for (j in json.data.files) {
-                if (json.data.files[j].episode == 1) {
-                    p(json.data.files[j].season + ' ' + json.data.files[j].episode)
-                    page.appendItem("", "separator", {
-                        title: new showtime.RichText('Сезон ' + json.data.files[j].season)
+                if (json.data.files[j].season_translation_id == filter || json.data.files[j].season_translation_id == undefined) {
+                    if (json.data.files[j].episode == 1) {
+                        p(json.data.files[j].season + ' ' + json.data.files[j].episode)
+                        page.appendItem("", "separator", {
+                            title: new showtime.RichText('Сезон ' + json.data.files[j].season)
+                        });
+                    }
+                    data = {
+                        title: json.data.info.title_en !== "" ? json.data.info.title_en : json.data.info.title_ru,
+                        year: json.data.info.year,
+                        season: json.data.files[j].season,
+                        episode: json.data.files[j].episode,
+                        url: json.data.files[j].url,
+                        icon: json.data.info.image_file ? json.data.info.image_file : ''
+                    };
+
+                    p(json.data.files[j].season)
+                    item = page.appendItem(PREFIX + ':' + json.id + ':' + escape(JSON.stringify(data)), "video", {
+                        title: new showtime.RichText(json.data.files[j].title + (json.data.files[j].season_translation ? ' (' + json.data.files[j].season_translation + ')' : '')),
+                        description: new showtime.RichText((json.data.info.translation ? coloredStr('Перевод: ', orange) + json.data.info.translation + (json.data.files[j].season_translation ? ', ' + json.data.files[j].season_translation : '') + '\n' : '') + (countries ? coloredStr('Страна: ', orange) + countries + '\n' : '') + (directors ? coloredStr('Режиссер: ', orange) + directors + ' ' : '') + (actors ? '\n' + coloredStr('В ролях актеры: ', orange) + actors + '\n' : '') + (json.data.info.description ? coloredStr('Описание: ', orange) + json.data.info.description : '')),
+                        duration: json.data.info.duration ? json.data.info.duration : '',
+                        rating: json.data.info.hd_rating * 10,
+                        genre: genres ? genres : '',
+                        year: json.data.info.year ? parseInt(json.data.info.year, 10) : '',
+                        icon: json.data.info.image_file ? json.data.info.image_file : ''
                     });
+
+                    //item.bindVideoMetadata({title: json.data.info.title_en, season: 2, episode: parseInt(i)+1,  year: parseInt(json.data.info.year)})
                 }
-                data = {
-                    title: json.data.info.title_en !== "" ? json.data.info.title_en : json.data.info.title_ru,
-                    year: json.data.info.year,
-                    season: json.data.files[j].season,
-                    episode: json.data.files[j].episode,
-                    url: json.data.files[j].url,
-                    icon: json.data.info.image_file ? json.data.info.image_file : ''
-                };
-
-                p(json.data.files[j].season)
-                item = page.appendItem(PREFIX + ':' + json.id + ':' + escape(JSON.stringify(data)), "video", {
-                    title: new showtime.RichText(json.data.files[j].title + (json.data.files[j].season_translation ? ' (' + json.data.files[j].season_translation + ')' : '')),
-                    description: new showtime.RichText((json.data.info.translation ? coloredStr('Перевод: ', orange) + json.data.info.translation + (json.data.files[j].season_translation ? ', ' + json.data.files[j].season_translation : '') + '\n' : '') + (countries ? coloredStr('Страна: ', orange) + countries + '\n' : '') + (directors ? coloredStr('Режиссер: ', orange) + directors + ' ' : '') + (actors ? '\n' + coloredStr('В ролях актеры: ', orange) + actors + '\n' : '') + (json.data.info.description ? coloredStr('Описание: ', orange) + json.data.info.description : '')),
-                    duration: json.data.info.duration ? json.data.info.duration : '',
-                    rating: json.data.info.hd_rating * 10,
-                    genre: genres ? genres : '',
-                    year: json.data.info.year ? parseInt(json.data.info.year, 10) : '',
-                    icon: json.data.info.image_file ? json.data.info.image_file : ''
-                });
-
-                //item.bindVideoMetadata({title: json.data.info.title_en, season: 2, episode: parseInt(i)+1,  year: parseInt(json.data.info.year)})
+                //code
             }
-            //code
-
         } else {
             for (i in json.data.files) {
                 p(json.data.info.title_en)
@@ -587,4 +609,22 @@ var html = require('showtime/html');
             showtime.trace(PREFIX + ' - Ошибка поиска: ' + err);
         }
     });
+
+
+
+    function dump(c, d) {
+        var a = "";
+        d || (d = 0);
+        for (var e = "", b = 0; b < d + 1; b++) {
+            e += "    ";
+        }
+        if ("object" == typeof c) {
+            for (var f in c) {
+                b = c[f], "object" == typeof b ? (a += e + "'" + f + "' ...\n", a += dump(b, d + 1)) : a += e + "'" + f + "' => \"" + b + '"\n';
+            }
+        } else {
+            a = "===>" + c + "<===(" + typeof c + ")";
+        }
+        return a;
+    }
 })(this);

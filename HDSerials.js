@@ -16,10 +16,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-//ver 0.11.9 API
+//ver 0.11.10 API
 
-var http = require('showtime/http');
-var html = require('showtime/html');
+var http = require('movian/http');
+var html = require('movian/html');
 
 
 (function(plugin) {
@@ -34,6 +34,7 @@ var html = require('showtime/html');
     });
     plugin.addHTTPAuth("http:\/\/.*moonwalk.cc.*", function(authreq) {
         authreq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0');
+        
     });
 
     function trim(s) {
@@ -59,7 +60,7 @@ var html = require('showtime/html');
         page.loading = false;
     }
     var service = plugin.createService("HDSerials.ru", PREFIX + ":start", "video", true, logo);
-    var settings = plugin.createSettings("HDSerials", logo, "HDSerials: Integration of the website HDSerials.ru into Showtime");
+    var settings = plugin.createSettings("HDSerials", logo, "HDSerials: Integration of the website HDSerials.ru into Movian");
     settings.createInfo("info", logo, "Plugin developed by " + plugin_info.author + ". \n");
     settings.createDivider('Browser Settings');
     settings.createInfo("info2", '', "Чем меньше значение - тем быстрее подгрузка списков в директориях с большим количеством файлов, но тем больше вероятность ошибки сервера. \n");
@@ -591,7 +592,7 @@ var html = require('showtime/html');
                     }
                 }));
                 for (var i in json.data) {
-                    page.appendItem(PREFIX + ':' + json.id + ':' + json.data[i].id + ':' + escape(json.data[i].title_ru + (json.data[i].season ? " " + showtime.entityDecode(json.data[i].season) : "")+':' + undefined), "video", {
+                    page.appendItem(PREFIX + ':' + json.id + ':' + json.data[i].id + ':' + escape(json.data[i].title_ru + (json.data[i].season ? " " + showtime.entityDecode(json.data[i].season) : ""))+':' + undefined, "video", {
                         title: showtime.entityDecode(unescape(json.data[i].title_ru)) + (json.data[i].title_en ? " / " + showtime.entityDecode(json.data[i].title_en) : "") + (json.data[i].season ? " " + showtime.entityDecode(json.data[i].season) : ""),
 
                         year: +parseInt(json.data[i].year, 10),

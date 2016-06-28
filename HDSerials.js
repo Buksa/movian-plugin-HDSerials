@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-//ver 1.0.1
+//ver 1.0.2
 var plugin = JSON.parse(Plugin.manifest);
 
 var PREFIX = plugin.id;
@@ -144,6 +144,18 @@ new page.Route(PREFIX + ":filter-videos:(.*):(.*):(.*)", function(page, id, titl
 new page.Route(PREFIX + ":search:(.*)", function(page, query) {
   page.metadata.icon = LOGO;
   page.metadata.title = 'Search results for: ' + query;
+  browse.list({
+                        'id': 'filter-videos',
+                        'category': 0,
+                        'search': query,
+                        'start': 0,
+                        'limit': service.requestQuantity
+                    },page);
+});
+
+page.Searcher(PREFIX + " - Videos", LOGO, function(page, query) {
+  page.metadata.icon = LOGO;
+ // page.metadata.title = 'Search results for: ' + query;
   browse.list({
                         'id': 'filter-videos',
                         'category': 0,

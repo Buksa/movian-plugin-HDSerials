@@ -1,15 +1,15 @@
 {
-    "type": "ecmascript",
-    "apiversion": 1,
-    "id": "HDSerials",
-    "file": "HDSerials.js",
-    "showtimeVersion": "5.0.240",
-    "version": "0.11.10",
-    "author": "Buksa, Wain",
-    "title": "HDSerials",
-    "icon": "img/logo.png",
-    "synopsis": "HDSerials.ru  - фильмы, сериалы и мультфильмы онлайн в HD.",
-    "description": "<p>HDSerials - is the integration of the website <a href=\"http://HDSerials.tv\">HDSerials.tv</a> into Movian",
-    "category": "video",
-    "homepage": "https://github.com/Buksa, https://github.com/Wain-PC"
+  "type": "ecmascript",
+  "apiversion": 2,
+  "id": "HDSerials",
+  "file": "HDSerials.js",
+  "showtimeVersion": "5.0.156",
+  "version": "1.0.1",
+  "author": "Buksa, Wain",
+  "title": "HDSerials",
+  "icon": "logo.png",
+  "category": "video",
+  "synopsis": "HDSerials.ru  - фильмы, сериалы и мультфильмы онлайн в HD.",
+  "description": "HDSerials - is the integration of the website <a href=\"http://HDSerials.tv\">HDSerials.tv</a> into Movian",
+  "homepage": "https://github.com/Buksa, https://github.com/Wain-PC"
 }

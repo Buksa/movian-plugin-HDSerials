@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-//ver 1.0.2
+//ver 1.0.3
 var plugin = JSON.parse(Plugin.manifest);
 
 var PREFIX = plugin.id;
@@ -239,21 +239,51 @@ function videoPage(page, data) {
         var request_host = parser(resp, 'request_host = "', '"');
         var params = "partner=" + partner + "&d_id=" + request + "&video_token=" + video_token + "&content_type=" + content_type + "&access_key=" + access_key + "&cd=1";
         log.p(params);
+        
+
+//Request URL:http://moonwalk.cc/sessions/create_new
+//Request Method:POST
+
+//Accept:*/*
+//Accept-Encoding:gzip, deflate
+//Accept-Language:en-US,en;q=0.8,zh;q=0.6,zh-CN;q=0.4,zh-TW;q=0.2,ru;q=0.2
+//Cache-Control:no-cache
+//Connection:keep-alive
+//Content-Length:103
+//Content-Type:application/x-www-form-urlencoded; charset=UTF-8
+//Cookie:_gat=1; _moon_session=UVc2MTVMSUtKRS9uekJ1VVVYZHZYMHo0eXlFYUhWV3pHQUVTQkovMFlwMVpwbVkya0R1ODBsYmpvOGJleXgzbStiTGt4Vzk4Q05uc2tKemFNS014UG0xMG95V0w3SWZtQnNmd1RYS2RXWUd6M2xXN1c4bUxiMVY3S1VtejAxYi9YUjc1WDZlSmJDN3VWWDZTdXo0eG81K3cweENzTk90akNUSTRlYUR2SGRtbkVEWTNtL0ZVS1JPZGpwS3lMK3RmLS0wdEVGeGxUUXZIOUZPckpFbWRveDN3PT0%3D--9edce6c8b125d6fe74124b98dc2bf393522fbcb1; _ga=GA1.2.896944432.1465011956; _364966110049=1; _364966110050=1468124044712
+//Encoding-Pool:MTQ2ODEyMzQwMDphOGM4ZDY3NWVlZGNjNzYzNmRmNGI2MTk4ZTk3N2Q4OQ==
+//Host:moonwalk.cc
+//Origin:http://moonwalk.cc
+//Pragma:no-cache
+//Referer:http://moonwalk.cc/serial/5db10bbffad49d31db8303097e2c8b26/iframe
+//User-Agent:Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36
+//X-CSRF-Token:92xrNPRaiNmCTFwvW/WZtng1AJqBD0LCPlpdRTqM4UFk7eEPM5+Di/daiYQKdl47A1OGlpt1gZeH23eLuGYSVQ==
+//X-Requested-With:XMLHttpRequest
+//Form Data
+//view parsed
+//partner=28&d_id=130&video_token=f26d62751fcf09c9&content_type=serial&access_key=0fb74eb4b2c16d45fe&cd=0
+//Name
+
+
+
+        
         var url1 = data.url.match(/http:\/\/.*?\//)
-            .toString() + "sessions/create_session";
+            .toString() + "sessions/create_new";
         var responseText = http.request(url1, {
             debug: 1,
             headers: {
-                "Accept-Encoding": "identity",
-                "Accept-Language": "en-us,en;q=0.5",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "User-Agent": "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.6) Gecko/20100627 Firefox/3.6.6",
-                "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
-                "X-CSRF-Token": csrftoken,
-                "Content-Data": content,
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                "X-Requested-With": "XMLHttpRequest",
-                "Connection": "close"
+              "Accept": '*/*',
+              "Accept-Encoding": 'gzip, deflate',
+              "Accept-Language": 'en-US,en;q=0.8,zh;q=0.6,zh-CN;q=0.4,zh-TW;q=0.2,ru;q=0.2',
+              "Cache-Control": 'no-cache',
+              "Connection": 'keep-alive',
+              "Content-Type": 'application/x-www-form-urlencoded; charset=UTF-8',
+              "Encoding-Pool": content,
+              "Referer":data.url.match(/http:\/\/.+?iframe/),
+              "User-Agent": 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+              "X-CSRF-Token": csrftoken,
+              "X-Requested-With": "XMLHttpRequest",
             },
             postdata: params
         })

@@ -1,4 +1,5 @@
 function populatePageFromResults(page, result) {
+  
   for (var i = 0; i < result.data.length; i++) {
  
     var item = result.data[i];
@@ -25,7 +26,9 @@ function populatePageFromResults(page, result) {
           title: (unescape(result.data[i].title_ru)) + (result.data[i].title_en ? " / " + (result.data[i].title_en) : "") + (result.data[i].season ? " " + (result.data[i].season) : ""),
           year: +parseInt(result.data[i].year, 10),
           icon: unescape(result.data[i].image_file)
-        });
+        })/*.bindVideoMetadata({          title: (unescape(result.data[i].title_ru)) + (result.data[i].title_en ? " / " + (result.data[i].title_en) : "") + (result.data[i].season ? " " + (result.data[i].season) : ""),
+          year: +parseInt(result.data[i].year, 10),});*/
+        //page.entries++;
         break;
 
       default:
@@ -93,6 +96,8 @@ exports.list = function(params, page) {
 
   page.loading = true;
   page.type = 'directory';
+  page.model.contents = 'grid';
+ // page.entries = 0;
 
   function loader() {
       api.call(params, page, function(result) {
@@ -111,7 +116,29 @@ exports.list = function(params, page) {
   loader();
   page.asyncPaginator = loader;
 }
+exports.searchlist = function(params, page) {
 
+  page.loading = true;
+  //page.type = 'directory';
+  page.entries = 0;
+
+  function loader() {
+      api.call(params, page, function(result) {
+        if (result.id && result.data.length === 0) {
+          page.type = 'empty';
+          return;
+        }
+        populatePageFromResults(page, result);
+        oprint(params)
+        if (params['start'] !== null) params['start'] = params['start'] + params['limit']
+        oprint(params)
+        page.haveMore(result.endOfData !== undefined && !result.endOfData);
+      });
+  }
+
+  loader();
+  page.asyncPaginator = loader;
+}
 
 exports.moviepage = function(params, page, filter){
   page.loading = true;
@@ -136,6 +163,7 @@ if (filter == 'undefined') {
   page.loading = false;
   result = JSON.parse(result)
 }
+log.p(result)
         if (result.data.genres) {
             genres = "";
             for (i in result.data.genres) {
@@ -190,8 +218,8 @@ if (filter == 'undefined') {
                     data = {
                         title: result.data.info.title_en !== "" ? result.data.info.title_en : result.data.info.title_ru,
                         year: result.data.info.year,
-                        season: result.data.files[j].season,
-                        episode: result.data.files[j].episode,
+                        season: +result.data.files[j].season < 10 ? ('0'+result.data.files[j].season) : result.data.files[j].season,
+                        episode: +result.data.files[j].episode < 10 ? ('0'+result.data.files[j].episode) : result.data.files[j].episode,
                         url: result.data.files[j].url,
                         icon: result.data.info.image_file ? result.data.info.image_file : ''
                     };
@@ -205,9 +233,11 @@ if (filter == 'undefined') {
                         genre: genres ? genres : '',
                         year: result.data.info.year ? parseInt(result.data.info.year, 10) : '',
                         icon: result.data.info.image_file ? result.data.info.image_file : ''
-                    });
+                    })//.bindVideoMetadata({title: result.data.info.title_en, season: +data.season, episode: +data.episode});
+                    .bindVideoMetadata({title: data.title +' S'+data.season+'E'+data.episode});
 
-                    //item.bindVideoMetadata({title: result.data.info.title_en, season: 2, episode: parseInt(i)+1,  year: parseInt(result.data.info.year)})
+log.p({title: result.data.info.title_ru, season: data.season, episode: data.episode})
+                   // item.bindVideoMetadata({title: result.data.info.title_en, season: data.season, episode: data.episode})
                 }
                 //code
             }

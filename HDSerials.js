@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-//ver 1.0.3
+//ver 1.0.4
 var plugin = JSON.parse(Plugin.manifest);
 
 var PREFIX = plugin.id;
@@ -156,7 +156,7 @@ new page.Route(PREFIX + ":search:(.*)", function(page, query) {
 page.Searcher(PREFIX + " - Videos", LOGO, function(page, query) {
   page.metadata.icon = LOGO;
  // page.metadata.title = 'Search results for: ' + query;
-  browse.list({
+  browse.searchlist({
                         'id': 'filter-videos',
                         'category': 0,
                         'search': query,

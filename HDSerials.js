@@ -75,16 +75,11 @@ settings.createBool("tosaccepted", "Accepted TOS (available in opening the plugi
 settings.createBool("debug", "Debug", false, function(v) {
   service.debug = v;
 });
-settings.createDivider('Browser Settings');
-settings.createInfo("info2", '', "Чем меньше значение - тем быстрее подгрузка списков в директориях с большим количеством файлов, но тем больше вероятность ошибки сервера. \n");
-settings.createInt("Min.Delay", "Интервал запросов к серверу (default: 3 сек)", 3, 1, 10, 1, 'сек', function(v) {
-  service.requestMinDelay = v;
-});
-settings.createInt("requestQuantity", "Количество запрашиваемых данных в одном запросе", 20, 10, 20, 5, '', function(v) {
+settings.createInt("requestQuantity", "Количество запрашиваемых данных в одном запросе", 40, 20, 100, 10, '', function(v) {
   service.requestQuantity = v;
 });
-settings.createBool("Show_finished", "Показывать сообщение о достижении конца директории", true, function(v) {
-  service.showEndOfDirMessage = v;
+settings.createBool("Show_META", "Show more info from thetvdb", true, function(v) {
+  service.tvdb = v;
 });
 
 function blueStr(str) {
@@ -98,18 +93,18 @@ function oprint(o) {
   print(JSON.stringify(o, null, 4));
 }
 
-    var blue = "6699CC",
-        orange = "FFA500";
+var blue = "6699CC",
+  orange = "FFA500";
 
-    function colorStr(str, color) {
-        return ' (' + str + ')';
-        //return '<font color="' + color + '">(' + str + ')</font>';      
-    }
+function colorStr(str, color) {
+  return ' (' + str + ')';
+  //return '<font color="' + color + '">(' + str + ')</font>';
+}
 
-    function coloredStr(str, color) {
-        return  str;
-//        return '<font color="' + color + '">' + str + '</font>';      
-    }
+function coloredStr(str, color) {
+  return str;
+  //        return '<font color="' + color + '">' + str + '</font>';
+}
 new page.Route(PREFIX + ":news:(.*)", function(page, id) {
   browse.list({
     'id': id,
@@ -145,24 +140,24 @@ new page.Route(PREFIX + ":search:(.*)", function(page, query) {
   page.metadata.icon = LOGO;
   page.metadata.title = 'Search results for: ' + query;
   browse.list({
-                        'id': 'filter-videos',
-                        'category': 0,
-                        'search': query,
-                        'start': 0,
-                        'limit': service.requestQuantity
-                    },page);
+    'id': 'filter-videos',
+    'category': 0,
+    'search': query,
+    'start': 0,
+    'limit': service.requestQuantity
+  }, page);
 });
 
 page.Searcher(PREFIX + " - Videos", LOGO, function(page, query) {
   page.metadata.icon = LOGO;
- // page.metadata.title = 'Search results for: ' + query;
-  browse.searchlist({
-                        'id': 'filter-videos',
-                        'category': 0,
-                        'search': query,
-                        'start': 0,
-                        'limit': service.requestQuantity
-                    },page);
+  // page.metadata.title = 'Search results for: ' + query;
+  browse.list({
+    'id': 'filter-videos',
+    'category': 0,
+    'search': query,
+    'start': 0,
+    'limit': service.requestQuantity
+  }, page);
 });
 
 // Landing page
@@ -203,141 +198,142 @@ function videoPage(page, data) {
   var canonicalUrl = PREFIX + ":video:" + data;
   data = JSON.parse(unescape(data));
 
-    var videoparams = {
-      canonicalUrl: canonicalUrl,
-      no_fs_scan: true,
-      icon: data.icon,      
-      title: unescape(data.title),
-      year: data.year ? data.year : '',
-      season: data.season ? data.season : '',
-      episode: data.episode ? data.episode : '',
-      sources: [{
+  var videoparams = {
+    canonicalUrl: canonicalUrl,
+    no_fs_scan: true,
+    icon: data.icon,
+    title: unescape(data.title),
+    year: data.year ? data.year : '',
+    season: data.season ? data.season : '',
+    episode: data.episode ? data.episode : '',
+    sources: [{
         url: []
-        }],
-          subtitles: []
-    };
+      }
+    ],
+    subtitles: []
+  };
 
-    if (data.url.match(/http:\/\/.+?iframe/)) {
-      log.p('Open url:' + data.url.match(/http:\/\/.+?iframe/));
-      log.p("Open url:" + data.url);
-        resp = http.request(data.url, {
-            method: "GET",
-            headers: {
-                Referer: BASE_URL
-            }
-        })
-            .toString();
-        log.p("source:" + resp);
-        var content = parser(resp, "|14", "|");
-        content = Duktape.enc("base64", 14 + content);
-        var csrftoken = parser(resp, 'csrf-token" content="', '"');
-        var request = parser(resp, 'request_host_id = "', '"');
-        var video_token = parser(resp, "video_token: '", "'");
-        var partner = parser(resp, "partner: ", ",");
-        var content_type = parser(resp, "content_type: '", "'");
-        var access_key = parser(resp, "access_key: '", "'");
-        var request_host = parser(resp, 'request_host = "', '"');
-        var params = "partner=" + partner + "&d_id=" + request + "&video_token=" + video_token + "&content_type=" + content_type + "&access_key=" + access_key + "&cd=1";
-        log.p(params);
-        
-
-//Request URL:http://moonwalk.cc/sessions/create_new
-//Request Method:POST
-
-//Accept:*/*
-//Accept-Encoding:gzip, deflate
-//Accept-Language:en-US,en;q=0.8,zh;q=0.6,zh-CN;q=0.4,zh-TW;q=0.2,ru;q=0.2
-//Cache-Control:no-cache
-//Connection:keep-alive
-//Content-Length:103
-//Content-Type:application/x-www-form-urlencoded; charset=UTF-8
-//Cookie:_gat=1; _moon_session=UVc2MTVMSUtKRS9uekJ1VVVYZHZYMHo0eXlFYUhWV3pHQUVTQkovMFlwMVpwbVkya0R1ODBsYmpvOGJleXgzbStiTGt4Vzk4Q05uc2tKemFNS014UG0xMG95V0w3SWZtQnNmd1RYS2RXWUd6M2xXN1c4bUxiMVY3S1VtejAxYi9YUjc1WDZlSmJDN3VWWDZTdXo0eG81K3cweENzTk90akNUSTRlYUR2SGRtbkVEWTNtL0ZVS1JPZGpwS3lMK3RmLS0wdEVGeGxUUXZIOUZPckpFbWRveDN3PT0%3D--9edce6c8b125d6fe74124b98dc2bf393522fbcb1; _ga=GA1.2.896944432.1465011956; _364966110049=1; _364966110050=1468124044712
-//Encoding-Pool:MTQ2ODEyMzQwMDphOGM4ZDY3NWVlZGNjNzYzNmRmNGI2MTk4ZTk3N2Q4OQ==
-//Host:moonwalk.cc
-//Origin:http://moonwalk.cc
-//Pragma:no-cache
-//Referer:http://moonwalk.cc/serial/5db10bbffad49d31db8303097e2c8b26/iframe
-//User-Agent:Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36
-//X-CSRF-Token:92xrNPRaiNmCTFwvW/WZtng1AJqBD0LCPlpdRTqM4UFk7eEPM5+Di/daiYQKdl47A1OGlpt1gZeH23eLuGYSVQ==
-//X-Requested-With:XMLHttpRequest
-//Form Data
-//view parsed
-//partner=28&d_id=130&video_token=f26d62751fcf09c9&content_type=serial&access_key=0fb74eb4b2c16d45fe&cd=0
-//Name
+  if (data.url.match(/http:\/\/.+?iframe/)) {
+    log.p('Open url:' + data.url.match(/http:\/\/.+?iframe/));
+    log.p("Open url:" + data.url);
+    resp = http.request(data.url, {
+      method: "GET",
+      headers: {
+        Referer: BASE_URL
+      }
+    })
+      .toString();
+    log.p("source:" + resp);
+    var content = parser(resp, "|14", "|");
+    content = Duktape.enc("base64", 14 + content);
+    var csrftoken = parser(resp, 'csrf-token" content="', '"');
+    var request = parser(resp, 'request_host_id = "', '"');
+    var video_token = parser(resp, "video_token: '", "'");
+    var partner = parser(resp, "partner: ", ",");
+    var content_type = parser(resp, "content_type: '", "'");
+    var access_key = parser(resp, "access_key: '", "'");
+    var request_host = parser(resp, 'request_host = "', '"');
+    var params = "partner=" + partner + "&d_id=" + request + "&video_token=" + video_token + "&content_type=" + content_type + "&access_key=" + access_key + "&cd=1";
+    log.p(params);
 
 
+    //Request URL:http://moonwalk.cc/sessions/create_new
+    //Request Method:POST
 
-        
-        var url1 = data.url.match(/http:\/\/.*?\//)
-            .toString() + "sessions/create_new";
-        var responseText = http.request(url1, {
-            debug: 1,
-            headers: {
-              "Accept": '*/*',
-              "Accept-Encoding": 'gzip, deflate',
-              "Accept-Language": 'en-US,en;q=0.8,zh;q=0.6,zh-CN;q=0.4,zh-TW;q=0.2,ru;q=0.2',
-              "Cache-Control": 'no-cache',
-              "Connection": 'keep-alive',
-              "Content-Type": 'application/x-www-form-urlencoded; charset=UTF-8',
-              "Encoding-Pool": content,
-              "Referer":data.url.match(/http:\/\/.+?iframe/),
-              "User-Agent": 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
-              "X-CSRF-Token": csrftoken,
-              "X-Requested-With": "XMLHttpRequest",
-            },
-            postdata: params
-        })
-            .toString();
-        log.p(parser(resp, "insertVideo('", "'"));
-        title = parser(resp, "insertVideo('", "'");
-        page.metadata.title = title;
-        json = JSON.parse(responseText);
-        log.p(json);
-        result_url = "hls:" + json.manifest_m3u8;
-        videoparams.sources = [{
-                url: "hls:" + json.manifest_m3u8
-            }
-        ];
-        video = "videoparams:" + JSON.stringify(videoparams);
-        page.appendItem(video, "video", {
-            title: "[Auto]" + " | " + title,
-            icon: data.icon
-        });
-        var video_urls = http.request(json.manifest_m3u8)
-            .toString();
-        log.p(video_urls);
-        var myRe = /RESOLUTION=([^,]+)[\s\S]+?(http.*)/g;
-        var myArray, i = 0;
-        while ((myArray = myRe.exec(video_urls)) !== null) {
-            videoparams.sources = [{
-                    url: "hls:" + myArray[2]
-                }
-            ];
-            video = "videoparams:" + JSON.stringify(videoparams);
-            page.appendItem(video, "video", {
-                title: "[" + myArray[1] + "]" + " | " + title,
-                icon: data.icon
-            });
-            i++;
+    //Accept:*/*
+    //Accept-Encoding:gzip, deflate
+    //Accept-Language:en-US,en;q=0.8,zh;q=0.6,zh-CN;q=0.4,zh-TW;q=0.2,ru;q=0.2
+    //Cache-Control:no-cache
+    //Connection:keep-alive
+    //Content-Length:103
+    //Content-Type:application/x-www-form-urlencoded; charset=UTF-8
+    //Cookie:_gat=1; _moon_session=UVc2MTVMSUtKRS9uekJ1VVVYZHZYMHo0eXlFYUhWV3pHQUVTQkovMFlwMVpwbVkya0R1ODBsYmpvOGJleXgzbStiTGt4Vzk4Q05uc2tKemFNS014UG0xMG95V0w3SWZtQnNmd1RYS2RXWUd6M2xXN1c4bUxiMVY3S1VtejAxYi9YUjc1WDZlSmJDN3VWWDZTdXo0eG81K3cweENzTk90akNUSTRlYUR2SGRtbkVEWTNtL0ZVS1JPZGpwS3lMK3RmLS0wdEVGeGxUUXZIOUZPckpFbWRveDN3PT0%3D--9edce6c8b125d6fe74124b98dc2bf393522fbcb1; _ga=GA1.2.896944432.1465011956; _364966110049=1; _364966110050=1468124044712
+    //Encoding-Pool:MTQ2ODEyMzQwMDphOGM4ZDY3NWVlZGNjNzYzNmRmNGI2MTk4ZTk3N2Q4OQ==
+    //Host:moonwalk.cc
+    //Origin:http://moonwalk.cc
+    //Pragma:no-cache
+    //Referer:http://moonwalk.cc/serial/5db10bbffad49d31db8303097e2c8b26/iframe
+    //User-Agent:Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36
+    //X-CSRF-Token:92xrNPRaiNmCTFwvW/WZtng1AJqBD0LCPlpdRTqM4UFk7eEPM5+Di/daiYQKdl47A1OGlpt1gZeH23eLuGYSVQ==
+    //X-Requested-With:XMLHttpRequest
+    //Form Data
+    //view parsed
+    //partner=28&d_id=130&video_token=f26d62751fcf09c9&content_type=serial&access_key=0fb74eb4b2c16d45fe&cd=0
+    //Name
+
+
+
+
+    var url1 = data.url.match(/http:\/\/.*?\//)
+      .toString() + "sessions/create_new";
+    var responseText = http.request(url1, {
+      debug: 1,
+      headers: {
+        "Accept": '*/*',
+        "Accept-Encoding": 'gzip, deflate',
+        "Accept-Language": 'en-US,en;q=0.8,zh;q=0.6,zh-CN;q=0.4,zh-TW;q=0.2,ru;q=0.2',
+        "Cache-Control": 'no-cache',
+        "Connection": 'keep-alive',
+        "Content-Type": 'application/x-www-form-urlencoded; charset=UTF-8',
+        "Encoding-Pool": content,
+        "Referer": data.url.match(/http:\/\/.+?iframe/),
+        "User-Agent": 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+        "X-CSRF-Token": csrftoken,
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      postdata: params
+    })
+      .toString();
+    log.p(parser(resp, "insertVideo('", "'"));
+    title = parser(resp, "insertVideo('", "'");
+    page.metadata.title = title;
+    json = JSON.parse(responseText);
+    log.p(json);
+    result_url = "hls:" + json.manifest_m3u8;
+    videoparams.sources = [{
+        url: "hls:" + json.manifest_m3u8
+      }
+    ];
+    video = "videoparams:" + JSON.stringify(videoparams);
+    page.appendItem(video, "video", {
+      title: "[Auto]" + " | " + title,
+      icon: data.icon
+    });
+    var video_urls = http.request(json.manifest_m3u8)
+      .toString();
+    log.p(video_urls);
+    var myRe = /RESOLUTION=([^,]+)[\s\S]+?(http.*)/g;
+    var myArray, i = 0;
+    while ((myArray = myRe.exec(video_urls)) !== null) {
+      videoparams.sources = [{
+          url: "hls:" + myArray[2]
         }
+      ];
+      video = "videoparams:" + JSON.stringify(videoparams);
+      page.appendItem(video, "video", {
+        title: "[" + myArray[1] + "]" + " | " + title,
+        icon: data.icon
+      });
+      i++;
     }
+  }
 
 
-        page.appendItem("search:" + data.title, "directory", {
-            title: 'Try Search for: ' + data.title
-        });
+  page.appendItem("search:" + data.title, "directory", {
+    title: 'Try Search for: ' + data.title
+  });
 
-        page.type = "directory";
-        page.contents = "contents";
-        page.metadata.logo = data.icon;
-        page.loading = false;
-    };
-    
+  page.type = "directory";
+  page.contents = "contents";
+  page.metadata.logo = data.icon;
+  page.loading = false;
+};
+
 function parser(a, c, e) {
-    var d = "",
-        b = a.indexOf(c);
-    0 < b && (a = a.substr(b + c.length), b = a.indexOf(e), 0 < b && (d = a.substr(0, b)));
-    return d;
-}  
+  var d = "",
+    b = a.indexOf(c);
+  0 < b && (a = a.substr(b + c.length), b = a.indexOf(e), 0 < b && (d = a.substr(0, b)));
+  return d;
+}
 
 new page.Route(PREFIX + ":video:(.*)", videoPage);

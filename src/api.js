@@ -1,7 +1,4 @@
 exports.call = function(params, page, callback, filter) {
-
-  
-
   var URL = 'http://hdserials.galanov.net/backend/model.php';
   var opts = {
     method: 'POST',
@@ -14,10 +11,8 @@ exports.call = function(params, page, callback, filter) {
     compression: true, // Will send 'Accept-Encoding: gzip' in request
     caching: true, // Enables Movian's built-in HTTP cache
   };
-
-  log.p(URL)
-  log.p(opts)
-
+  log.p(URL);
+  log.p(opts);
   http.request(URL, opts, function(err, result) {
     if (page) page.loading = false;
     if (err) {
@@ -38,4 +33,4 @@ exports.call = function(params, page, callback, filter) {
       }
     }
   });
-}
+};
